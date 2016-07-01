@@ -13,6 +13,10 @@ exports.appendFile = function(path, body) {
     return fs.appendFileSync(path, body);
 }
 
+exports.capitalizeFirstLetter = function(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 exports.verify = function(args) {
     if (typeof args === 'object') {
         if (args.indexOf(input) == -1)

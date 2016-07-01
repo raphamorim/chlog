@@ -31,7 +31,7 @@ chlog.prototype.run = function() {
                 for (var i = 0; i < commits.length; i++) {
                     var sha = commits[i].sha().substr(0, 7),
                         msg = commits[i].message().split('\n')[0];
-                    console.log(sha + " " + msg);
+                    console.log("- " + utils.capitalizeFirstLetter(msg) + " (" + sha + ")");
                 }
             });
         }).catch(function(err) {
