@@ -3,6 +3,7 @@
 var Git = require('nodegit');
 
 var packageJson = require('../package.json'),
+    path = require('path'),
     utils = require('./utils');
 
 var chlog = new Function();
@@ -12,44 +13,31 @@ chlog.prototype.version = function() {
 }
 
 chlog.prototype.run = function() {
-    Git.Repository.open("tmp")
-        // Open the master branch.
+    return Git.Repository.open(path.resolve(__dirname, "../.git"))
         .then(function(repo) {
-            return repo.getMasterCommit();
-        })
-        // Display information about commits on master.
-        .then(function(firstCommitOnMaster) {
-            // Create a new history event emitter.
-            var history = firstCommitOnMaster.history();
-
-            // Create a counter to only show up to 9 entries.
-            var count = 0;
-
-            // Listen for commit events from the history.
-            history.on("commit", function(commit) {
-                // Disregard commits past 9.
-                if (++count >= 1) {
-                    return;
+            return repo.getCurrentBranch().then(function(ref) {
+                // console.log("On " + ref.shorthand() + " (" + ref.target() + ")");
+                return repo.getBranchCommit(ref.shorthand());
+            }).then(function(commit) {
+                /* Set up the event emitter and a promise to resolve when it finishes up. */
+                var hist = commit.history(),
+                    p = new Promise(function(resolve, reject) {
+                        hist.on("end", resolve);
+                        hist.on("error", reject);
+                    });
+                hist.start();
+                return p;
+            }).then(function(commits) {
+                for (var i = 0; i < commits.length; i++) {
+                    var sha = commits[i].sha().substr(0, 7),
+                        msg = commits[i].message().split('\n')[0];
+                    console.log(sha + " " + msg);
                 }
-
-                // Show the commit sha.
-                console.log("commit " + commit.sha());
-
-                // Store the author object.
-                var author = commit.author();
-
-                // Display author information.
-                console.log("Author:\t" + author.name() + " <" + author.email() + ">");
-
-                // Show the commit date.
-                console.log("Date:\t" + commit.date());
-
-                // Give some space and show the message.
-                console.log("\n    " + commit.message());
             });
-
-            // Start emitting events.
-            history.start();
+        }).catch(function(err) {
+            console.log(err);
+        }).done(function() {
+            // console.log('Finished');
         });
 }
 

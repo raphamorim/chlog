@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/raphamorim/chlog#readme",
   "dependencies": {
+    "bluebird": "^3.4.1",
     "nodegit": "^0.14.1"
   }
 }
